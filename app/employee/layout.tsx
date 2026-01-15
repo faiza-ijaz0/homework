@@ -5,18 +5,17 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   LayoutDashboard, 
-  User, 
-  Calendar, 
-  FileText, 
-  HelpCircle,
+  CheckSquare,
+  Clock,
+  TrendingUp,
+  DollarSign,
   LogOut,
   Bell,
   Menu,
-  Search,
   X
 } from 'lucide-react'
 
-export default function ClientLayout({ children }: { children: ReactNode }) {
+export default function EmployeeLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isSigningOut, setIsSigningOut] = useState(false)
@@ -27,9 +26,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     
     try {
       // Clear localStorage
-      localStorage.removeItem('homeware_client_token')
-      localStorage.removeItem('homeware_client_email')
-      localStorage.removeItem('homeware_client_remember')
+      localStorage.removeItem('homeware_employee_token')
+      localStorage.removeItem('homeware_employee_email')
+      localStorage.removeItem('homeware_employee_remember')
       
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -43,11 +42,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/client/dashboard' },
-    { icon: User, label: 'My Profile', href: '/client/profile' },
-    { icon: Calendar, label: 'My Bookings', href: '/client/bookings' },
-    { icon: FileText, label: 'Invoices', href: '/client/invoices' },
-    { icon: HelpCircle, label: 'Support', href: '/client/support' },
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/employee/dashboard' },
+    { icon: CheckSquare, label: 'Assignments', href: '/employee/assignments' },
+    { icon: Clock, label: 'Timesheets', href: '/employee/timesheets' },
+    { icon: TrendingUp, label: 'Performance', href: '/employee/performance' },
+    { icon: DollarSign, label: 'Payroll', href: '/employee/payroll' },
   ]
 
   return (
@@ -55,13 +54,19 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'w-72' : 'w-20'} border-r bg-card hidden lg:flex flex-col sticky top-0 h-screen shadow-sm transition-all duration-300`}>
         <div className={`p-6 border-b flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}>
-          <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20">
-            H
-          </div>
-          {sidebarOpen && (
-            <div>
-              <span className="font-black text-lg tracking-tighter block leading-none uppercase">Homeware</span>
-              <span className="text-[10px] font-bold text-blue-600 tracking-[0.2em] uppercase">Client Portal</span>
+          {sidebarOpen ? (
+            <>
+              <div className="h-10 w-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-500/20">
+                H
+              </div>
+              <div>
+                <span className="font-black text-lg tracking-tighter block leading-none uppercase">Homeware</span>
+                <span className="text-[10px] font-bold text-emerald-600 tracking-[0.2em] uppercase">Employee Portal</span>
+              </div>
+            </>
+          ) : (
+            <div className="h-10 w-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-500/20">
+              H
             </div>
           )}
         </div>
@@ -77,12 +82,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 title={!sidebarOpen ? item.label : undefined}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group ${
                   isActive 
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' 
                     : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                 } ${!sidebarOpen && 'justify-center'}`}
               >
                 <item.icon className={`h-5 w-5 transition-colors shrink-0 ${
-                  isActive ? 'text-white' : 'text-muted-foreground group-hover:text-blue-600'
+                  isActive ? 'text-white' : 'text-muted-foreground group-hover:text-emerald-600'
                 }`} />
                 {sidebarOpen && (
                   <>
@@ -99,12 +104,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           <div className="p-4 border-t">
             <div className="bg-muted/50 rounded-2xl p-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 font-bold">
-                  AA
+                <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 font-bold shrink-0">
+                  EM
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">Ahmed Al-Mansoori</p>
-                  <p className="text-xs text-muted-foreground truncate">ahmed@example.com</p>
+                  <p className="text-sm font-bold truncate">Mohammed Said</p>
+                  <p className="text-xs text-muted-foreground truncate">employee@example.com</p>
                 </div>
               </div>
               <button 
@@ -134,7 +139,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             <button className="lg:hidden p-2 hover:bg-accent rounded-lg">
               <Menu className="h-6 w-6" />
             </button>
-            <h2 className="text-sm font-bold text-muted-foreground hidden md:block">Welcome back, Ahmed!</h2>
+            <h2 className="text-sm font-bold text-muted-foreground hidden md:block">Welcome back, Mohammed!</h2>
           </div>
           
           <div className="flex items-center gap-3">

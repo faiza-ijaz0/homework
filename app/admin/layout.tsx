@@ -282,21 +282,30 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       )}
 
       {/* Sidebar - Desktop Only */}
-      <aside className="w-64 border-r bg-card hidden lg:flex flex-col sticky top-0 h-screen shadow-sm overflow-hidden">
-        <div className="p-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} border-r bg-card hidden lg:flex flex-col sticky top-0 h-screen shadow-sm overflow-hidden transition-all duration-300`}>
+        <div className={`p-4 border-b flex items-center ${!sidebarOpen && 'justify-center'} ${sidebarOpen && 'justify-between'}`}>
+          {sidebarOpen && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/30">
+                  H
+                </div>
+                <div>
+                  <span className="font-black text-lg tracking-tighter block leading-none">HOMEWARE</span>
+                  <span className="text-[10px] font-bold text-blue-600 tracking-[0.2em] uppercase">Hygiene ERP</span>
+                </div>
+              </div>
+            </>
+          )}
+          {!sidebarOpen && (
             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/30">
               H
             </div>
-            <div>
-              <span className="font-black text-lg tracking-tighter block leading-none">HOMEWARE</span>
-              <span className="text-[10px] font-bold text-blue-600 tracking-[0.2em] uppercase">Hygiene ERP</span>
-            </div>
-          </div>
+          )}
         </div>
         
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-          <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Main Menu</p>
+          {sidebarOpen && <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Main Menu</p>}
           {menuItems.map((item) => {
             const isActive = pathname === item.href
             const hasSubmenu = 'submenu' in item
@@ -330,18 +339,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         isSubmenuActive 
                           ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
                           : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                      }`}
-                      title=""
+                      } ${!sidebarOpen && 'justify-center'}`}
+                      title={!sidebarOpen ? item.label : undefined}
                     >
                       <item.icon className={`h-5 w-5 transition-colors shrink-0 ${
                         isSubmenuActive ? 'text-white' : 'text-muted-foreground group-hover:text-blue-600'
                       }`} />
-                      <span className="flex-1 text-left">{item.label}</span>
-                      <ChevronDown className={`h-4 w-4 transition-transform shrink-0 ${
-                        (isCrmItem && crmOpen) || (isSurveysItem && surveysOpen) || (isQuotationsItem && quotationsOpen) || (isHrItem && hrOpen) || (isFinanceItem && financeOpen) || (isMeetingsItem && meetingsOpen) || (isAdminMgmtItem && adminMgmtOpen) || (isAiItem && aiOpen) || (item.label === 'Product Management' && productsOpen) ? 'rotate-180' : ''
-                      }`} />
+                      {sidebarOpen && (
+                        <>
+                          <span className="flex-1 text-left">{item.label}</span>
+                          <ChevronDown className={`h-4 w-4 transition-transform shrink-0 ${
+                            (isCrmItem && crmOpen) || (isSurveysItem && surveysOpen) || (isQuotationsItem && quotationsOpen) || (isHrItem && hrOpen) || (isFinanceItem && financeOpen) || (isMeetingsItem && meetingsOpen) || (isAdminMgmtItem && adminMgmtOpen) || (isAiItem && aiOpen) || (item.label === 'Product Management' && productsOpen) ? 'rotate-180' : ''
+                          }`} />
+                        </>
+                      )}
                     </button>
-                    {((isCrmItem && crmOpen) || (isSurveysItem && surveysOpen) || (isQuotationsItem && quotationsOpen) || (isHrItem && hrOpen) || (isFinanceItem && financeOpen) || (isMeetingsItem && meetingsOpen) || (isAdminMgmtItem && adminMgmtOpen) || (isAiItem && aiOpen) || (item.label === 'Product Management' && productsOpen)) && (
+                    {sidebarOpen && (((isCrmItem && crmOpen) || (isSurveysItem && surveysOpen) || (isQuotationsItem && quotationsOpen) || (isHrItem && hrOpen) || (isFinanceItem && financeOpen) || (isMeetingsItem && meetingsOpen) || (isAdminMgmtItem && adminMgmtOpen) || (isAiItem && aiOpen) || (item.label === 'Product Management' && productsOpen)) && (
                       <div className="ml-2 mt-1 space-y-1 border-l-2 border-muted pl-2">
                         {('submenu' in item && item.submenu) && item.submenu.map((subitem: any) => {
                           const isSubActive = pathname === subitem.href
@@ -368,7 +381,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                           )
                         })}
                       </div>
-                    )}
+                    ))}
                   </>
                 ) : (
                   <Link
@@ -377,14 +390,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       isActive 
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
                         : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                    }`}
-                    title=""
+                    } ${!sidebarOpen && 'justify-center'}`}
+                    title={!sidebarOpen ? item.label : undefined}
                   >
                     <item.icon className={`h-5 w-5 transition-colors shrink-0 ${
                       isActive ? 'text-white' : 'text-muted-foreground group-hover:text-blue-600'
                     }`} />
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {isActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>}
+                    {sidebarOpen && (
+                      <>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        {isActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>}
+                      </>
+                    )}
                   </Link>
                 )}
               </div>
@@ -393,25 +410,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="p-4 border-t space-y-4">
-          <div className="bg-muted/50 rounded-2xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/30">
-                AD
+          {sidebarOpen && (
+            <div className="bg-muted/50 rounded-2xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/30 shrink-0">
+                  AD
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold truncate">Admin User</p>
+                  <p className="text-xs text-muted-foreground truncate">admin@homeware.ae</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate">Admin User</p>
-                <p className="text-xs text-muted-foreground truncate">admin@homeware.ae</p>
-              </div>
+              <button 
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="flex w-full items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 border border-red-100 dark:border-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+              </button>
             </div>
-            <button 
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="flex w-full items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30 border border-red-100 dark:border-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
-            </button>
-          </div>
+          )}
         </div>
       </aside>
 
@@ -515,6 +534,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-20 border-b bg-card/80 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between px-8">
           <div className="flex items-center gap-6 flex-1">
+            <button 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="hidden lg:flex p-2 hover:bg-accent rounded-lg transition-colors"
+              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            >
+              {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 hover:bg-accent rounded-lg">
               <Menu className="h-6 w-6" />
             </button>
@@ -549,7 +575,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 className="fixed inset-0 z-40" 
                 onClick={() => setShowNotifications(false)}
               />
-              <div className="absolute right-8 top-20 w-96 bg-card border rounded-2xl shadow-2xl z-50 max-h-[600px] overflow-hidden flex flex-col">
+              <div className="absolute right-8 top-20 w-96 bg-card border rounded-2xl shadow-2xl z-50 max-h-96 overflow-hidden flex flex-col">
                 <div className="p-4 border-b flex items-center justify-between bg-muted/50">
                   <div>
                     <h3 className="font-black text-foreground">Notifications</h3>
