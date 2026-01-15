@@ -19,9 +19,26 @@ import {
   Droplets,
   Shield,
   Lightbulb,
-  Square
+  Square,
+  Upload,
+  X,
+  Check,
+  Image as ImageIcon
 } from 'lucide-react'
-import { MOCK_SERVICES, Service } from '@/lib/bookings-services-data'
+
+interface ServiceWithImage extends Record<string, any> {
+  id: string
+  name: string
+  description: string
+  category: string
+  basePrice: number
+  duration: number
+  icon: any
+  isActive: boolean
+  image?: string
+}
+
+import { MOCK_SERVICES } from '@/lib/bookings-services-data'
 
 const categoryIcons = {
   cleaning: Sparkles,
@@ -40,12 +57,15 @@ const categoryColors = {
 }
 
 export default function AdminServices() {
-  const [services, setServices] = useState<Service[]>(MOCK_SERVICES)
+  const [services, setServices] = useState<ServiceWithImage[]>(MOCK_SERVICES.map(s => ({ ...s, image: undefined })))
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedService, setSelectedService] = useState<ServiceWithImage | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
+  const [editingService, setEditingService] = useState<ServiceWithImage | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   const filteredServices = useMemo(() => {
     return services.filter(service => {
@@ -70,9 +90,43 @@ export default function AdminServices() {
     setShowDeleteConfirm(null)
   }
 
-  const handleViewDetails = (service: Service) => {
+  const handleViewDetails = (service: ServiceWithImage) => {
     setSelectedService(service)
     setShowDetailsModal(true)
+  }
+
+  const handleEditService = (service: ServiceWithImage) => {
+    setEditingService(service)
+    setShowEditModal(true)
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, serviceId: string) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setUploading(true)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const imageData = event.target?.result as string
+        setServices(services.map(s =>
+          s.id === serviceId ? { ...s, image: imageData } : s
+        ))
+        if (editingService?.id === serviceId) {
+          setEditingService({ ...editingService, image: imageData })
+        }
+        setUploading(false)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleSaveEdit = () => {
+    if (editingService) {
+      setServices(services.map(s =>
+        s.id === editingService.id ? editingService : s
+      ))
+      setShowEditModal(false)
+      setEditingService(null)
+    }
   }
 
   const categories = ['all', 'cleaning', 'maintenance', 'inspection', 'consultation', 'specialized']
@@ -206,10 +260,13 @@ export default function AdminServices() {
                     <tr key={service.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          {/* eslint-disable-next-line tailwindcss/no-contradicting-classname */}
-                          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center shrink-0">
-                            <CategoryIcon className="h-5 w-5 text-blue-600" />
-                          </div>
+                          {service.image ? (
+                            <img src={service.image} alt={service.name} className="h-10 w-10 rounded-lg object-cover" />
+                          ) : (
+                            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center shrink-0">
+                              <CategoryIcon className="h-5 w-5 text-blue-600" />
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <p className="font-bold text-foreground truncate">{service.name}</p>
                             <p className="text-xs text-muted-foreground truncate">{service.description.substring(0, 50)}...</p>
@@ -258,7 +315,7 @@ export default function AdminServices() {
                             {service.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                           </button>
                           <button
-                            onClick={() => {}}
+                            onClick={() => handleEditService(service)}
                             className="p-2 hover:bg-green-100 dark:hover:bg-green-950/30 rounded-lg text-green-600 transition-colors"
                             title="Edit"
                           >
@@ -288,7 +345,184 @@ export default function AdminServices() {
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Edit Service Modal */}
+      {showEditModal && editingService && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-card border-b p-6 flex items-center justify-between">
+              <h3 className="text-2xl font-black">Edit Service</h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false)
+                  setEditingService(null)
+                }}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-bold mb-3">Service Image</label>
+                <div className="relative">
+                  {editingService.image ? (
+                    <div className="relative">
+                      <img src={editingService.image} alt="Service" className="w-full h-64 object-cover rounded-xl" />
+                      <button
+                        onClick={() => setEditingService({ ...editingService, image: undefined })}
+                        className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+                      <ImageIcon className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm font-bold">Click to upload image</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, editingService.id)}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Service Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2">Service Name</label>
+                  <input
+                    type="text"
+                    value={editingService.name}
+                    onChange={(e) => setEditingService({ ...editingService, name: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">Base Price (AED)</label>
+                  <input
+                    type="number"
+                    value={editingService.basePrice}
+                    onChange={(e) => setEditingService({ ...editingService, basePrice: Number(e.target.value) })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2">Duration (hours)</label>
+                  <input
+                    type="number"
+                    value={editingService.duration}
+                    onChange={(e) => setEditingService({ ...editingService, duration: Number(e.target.value) })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">Category</label>
+                  <select
+                    value={editingService.category}
+                    onChange={(e) => setEditingService({ ...editingService, category: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="cleaning">Cleaning</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="inspection">Inspection</option>
+                    <option value="consultation">Consultation</option>
+                    <option value="specialized">Specialized</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold mb-2">Description</label>
+                <textarea
+                  value={editingService.description}
+                  onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={editingService.isActive}
+                  onChange={(e) => setEditingService({ ...editingService, isActive: e.target.checked })}
+                  className="h-4 w-4 rounded"
+                />
+                <label className="text-sm font-bold">Active Service</label>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={() => {
+                    setShowEditModal(false)
+                    setEditingService(null)
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-lg border hover:bg-muted transition-colors font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-bold flex items-center justify-center gap-2"
+                >
+                  <Check className="h-4 w-4" />
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedService && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl max-w-2xl w-full shadow-2xl">
+            <div className="p-6 border-b flex items-center justify-between">
+              <h3 className="text-2xl font-black">{selectedService.name}</h3>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              {selectedService.image && (
+                <img src={selectedService.image} alt={selectedService.name} className="w-full h-64 object-cover rounded-xl" />
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-bold">Price</p>
+                  <p className="text-xl font-black">AED {selectedService.basePrice}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-bold">Duration</p>
+                  <p className="text-xl font-black">{selectedService.duration}h</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Description</p>
+                <p className="text-sm">{selectedService.description}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">

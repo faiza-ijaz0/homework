@@ -204,25 +204,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     {
       icon: Wrench,
       label: 'Product Management',
-      href: '/admin/products',
+      href: '/admin/services',
       submenu: [
         { label: 'Categories', href: '/admin/products/categories', icon: Archive },
-        { label: 'Services', href: '/admin/products/services', icon: Zap },
+        { label: 'Services', href: '/admin/services', icon: Zap },
         { label: 'Products', href: '/admin/products/products', icon: Package },
       ]
     },
     { icon: Briefcase, label: 'Jobs', href: '/admin/jobs' },
     { icon: Wrench, label: 'Equipment & Permits', href: '/admin/equipment-permits' },
     { icon: TrendingUp, label: 'Job Profitability', href: '/admin/job-profitability' },
-    {
-      icon: Sparkles,
-      label: 'Booking System',
-      href: '/admin/services',
-      submenu: [
-        { label: 'Services', href: '/admin/services', icon: Sparkles },
-        { label: 'Bookings', href: '/admin/bookings', icon: Calendar },
-      ]
-    },
+    { icon: Calendar, label: 'Bookings', href: '/admin/bookings' },
     {
       icon: UserCircle,
       label: 'HR Management',
