@@ -19,8 +19,6 @@ export default function Home() {
   const springX = useSpring(mouseX, { stiffness: 50, damping: 20 })
   const springY = useSpring(mouseY, { stiffness: 50, damping: 20 })
 
-  // For magnetic effects
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -300,63 +298,33 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {[
-              {
-                title: "Normal Cleaning",
-                description: "Professional hourly cleaning services for homes and offices. Our trained staff ensures your space remains spotless and welcoming.",
-                image: "https://images.unsplash.com/photo-1581578731548-c64695cc6958?auto=format&fit=crop&q=80&w=800",
-                tag: "Bestseller"
-              },
-              {
-                title: "Deep Cleaning",
-                description: "Comprehensive intensive cleaning for move-ins, move-outs, or seasonal refreshes. We reach every corner using medical-grade equipment.",
-                image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800",
-                tag: "Exclusive"
-              },
-              {
-                title: "Technical Cleaning",
-                description: "Specialized maintenance including AC cleaning, plumbing, and electrical services to keep your infrastructure running perfectly.",
-                image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=800",
-                tag: "Specialist"
-              },
-              {
-                title: "Post-Refurbishment",
-                description: "Removing fine dust and construction residue with precision.",
-                image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&q=80&w=800",
-                tag: "Express"
-              },
-              {
-                title: "Corporate Clean",
-                description: "Maintaining productive environments for Dubai's top firms.",
-                image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&q=80&w=800",
-                tag: "Enterprise"
-              },
-              {
-                title: "Kitchen Sterilization",
-                description: "Heavy-duty degreasing and hood cleaning for busy kitchens.",
-                image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=800",
-                tag: "Mandatory"
-              }
+              { title: "Residential Cleaning", href: "/services/residential-cleaning", description: "Regular hourly cleaning for homes", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6958?auto=format&fit=crop&q=80&w=800", tag: "Regular" },
+              { title: "Villa Deep Cleaning", href: "/services/villa-deep-cleaning", description: "Complete interior and exterior sanitization", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800", tag: "Deep" },
+              { title: "AC Duct Cleaning", href: "/services/ac-duct-cleaning", description: "Professional air duct sterilization", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=800", tag: "Technical" },
+              { title: "Office Deep Cleaning", href: "/services/office-deep-cleaning", description: "Corporate space sanitization", image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&q=80&w=800", tag: "Deep" },
+              { title: "Kitchen Deep Cleaning", href: "/services/kitchen-deep-cleaning", description: "Heavy-duty degreasing and hood cleaning", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&q=80&w=800", tag: "Deep" },
+              { title: "Apartment Deep Cleaning", href: "/services/apartment-deep-cleaning", description: "Move-in or move-out cleaning", image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=800", tag: "Deep" },
+              { title: "Post Construction Cleaning", href: "/services/post-construction-cleaning", description: "Remove dust and construction residue", image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&q=80&w=800", tag: "Specialist" },
+              { title: "Sofa Deep Cleaning", href: "/services/sofa-deep-cleaning", description: "Professional upholstery cleaning", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800", tag: "Specialist" },
+              { title: "Window Cleaning", href: "/services/window-cleaning", description: "Interior and exterior window service", image: "https://images.unsplash.com/photo-1584775524340-3fb88cd59b13?auto=format&fit=crop&q=80&w=800", tag: "Regular" },
+              { title: "Carpet Deep Cleaning", href: "/services/carpets-deep-cleaning", description: "Professional carpet and rug cleaning", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800", tag: "Deep" },
+              { title: "Water Tank Cleaning", href: "/services/water-tank-cleaning", description: "Safe water tank sanitization", image: "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&q=80&w=800", tag: "Technical" },
+              { title: "Gym Deep Cleaning", href: "/services/gym-deep-cleaning", description: "Equipment and facility sanitization", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800", tag: "Deep" }
             ].map((service, i) => (
-              <motion.div 
+              <motion.a 
                 key={i} 
+                href={service.href}
                 className="group relative h-125 rounded-[3rem] overflow-hidden shadow-2xl shadow-slate-100 cursor-none animate-hanging"
                 style={{ animationDelay: `${i * 0.15}s` }}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                onMouseEnter={() => setHoveredCard(i)}
-                onMouseLeave={() => setHoveredCard(null)}
                 whileHover={{ y: -15, transition: { duration: 0.4, ease: "easeOut" } }}
               >
-                {/* Magnetic Tilt Effect Container */}
+                {/* Image Background */}
                 <motion.div
                   className="absolute inset-0 z-0"
-                  animate={{
-                    rotateY: hoveredCard === i ? (mouseX.get() - (window.innerWidth / 2)) / 50 : 0,
-                    rotateX: hoveredCard === i ? -(mouseY.get() - (window.innerHeight / 2)) / 50 : 0,
-                  }}
-                  transition={{ type: "spring", stiffness: 150, damping: 15 }}
                 >
                   <img 
                     src={service.image} 
@@ -377,15 +345,14 @@ export default function Home() {
                   <p className="text-slate-300 font-medium mb-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0 text-sm">
                     {service.description}
                   </p>
-                  <motion.a 
-                    href="/book-service" 
+                  <motion.div 
                     className="inline-flex items-center gap-3 text-white font-black uppercase tracking-widest text-sm"
                     whileHover={{ gap: "1.5rem" }}
                   >
-                    Explore service <ArrowRight className="h-5 w-5 text-primary" />
-                  </motion.a>
+                    View Service <ArrowRight className="h-5 w-5 text-primary" />
+                  </motion.div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </div>
         </div>
