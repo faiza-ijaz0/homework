@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, ArrowLeft, Building2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Building2, Loader2 } from 'lucide-react';
+import { validateCredentials, storeSession } from '@/lib/auth';
 
 export default function AdminLogin() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@homeware.ae');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -20,28 +21,29 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual authentication API call
-      // For demo purposes, this will accept the demo credentials
-      if (email === 'admin@homeware.ae' && password === 'Demo@123') {
-        // Store token/session
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-          localStorage.setItem('adminEmail', email);
-        }
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Redirect to admin dashboard
+      console.log('Attempting login with:', { email, password: '***', portal: 'admin' });
+      const authResponse = await validateCredentials('admin', email, password);
+      console.log('Auth response:', authResponse);
+      
+      if (authResponse.success && authResponse.session) {
+        console.log('Login successful, storing session...');
+        storeSession(authResponse.session);
         router.push('/admin/dashboard');
       } else {
-        setError('Invalid email or password. Try: admin@homeware.ae / Demo@123');
+        console.log('Login failed:', authResponse.message);
+        setError(authResponse.message || authResponse.error || 'Login failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Login error:', err);
+      setError('An unexpected error occurred');
     }
+    
+    setIsLoading(false);
+  };
+
+  const fillDemoCredentials = () => {
+    setEmail('admin@homeware.ae');
+    setPassword('Demo@123');
   };
 
   return (
@@ -185,6 +187,13 @@ export default function AdminLogin() {
                 <span className="text-slate-400">Password:</span>
                 <code className="text-slate-300 font-mono">Demo@123</code>
               </div>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="w-full mt-2 py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 text-xs font-medium rounded transition-colors"
+              >
+                Use Demo Credentials
+              </button>
             </div>
           </div>
         </div>

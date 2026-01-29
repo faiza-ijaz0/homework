@@ -10,53 +10,64 @@ import {
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-white text-slate-900 transition-colors duration-300">
-      {/* Top Bar */}
-      <div className="bg-primary text-white py-2 hidden md:block">
-        <div className="container mx-auto px-4 flex justify-between items-center text-xs font-medium">
-          <div className="flex items-center gap-6">
-            <a href="tel:80046639675" className="flex items-center gap-2 hover:text-pink-100 transition-colors">
-              <Phone className="h-3 w-3" /> 80046639675
+      {/* Top Bar - Enhanced */}
+      <div className="bg-gradient-to-r from-primary via-primary to-pink-700 text-white py-3 hidden md:block border-b border-white/10">
+        <div className="container mx-auto px-4 flex justify-between items-center text-xs font-bold">
+          <div className="flex items-center gap-8">
+            <a href="tel:80046639675" className="flex items-center gap-2 hover:text-white/90 transition-all group">
+              <div className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-all">
+                <Phone className="h-3.5 w-3.5" />
+              </div>
+              <span className="tracking-wider">80046639675</span>
             </a>
-            <a href="mailto:services@homeworkuae.com" className="flex items-center gap-2 hover:text-pink-100 transition-colors">
-              <Mail className="h-3 w-3" /> services@homeworkuae.com
+            <a href="mailto:services@homeworkuae.com" className="flex items-center gap-2 hover:text-white/90 transition-all group">
+              <div className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-all">
+                <Mail className="h-3.5 w-3.5" />
+              </div>
+              <span className="tracking-wide">services@homeworkuae.com</span>
             </a>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-pink-100 transition-colors"><Facebook className="h-3.5 w-3.5" /></a>
-            <a href="#" className="hover:text-pink-100 transition-colors"><Linkedin className="h-3.5 w-3.5" /></a>
-            <a href="#" className="hover:text-pink-100 transition-colors"><MessageCircle className="h-3.5 w-3.5" /></a>
-            <a href="#" className="hover:text-pink-100 transition-colors"><Instagram className="h-3.5 w-3.5" /></a>
-            <a href="#" className="hover:text-pink-100 transition-colors"><Music2 className="h-3.5 w-3.5" /></a>
+          <div className="flex items-center gap-3">
+            <span className="text-white/70 text-[10px] uppercase tracking-widest mr-2">Follow Us</span>
+            <a href="#" className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all"><Facebook className="h-3.5 w-3.5" /></a>
+            <a href="#" className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all"><Linkedin className="h-3.5 w-3.5" /></a>
+            <a href="#" className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all"><MessageCircle className="h-3.5 w-3.5" /></a>
+            <a href="#" className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all"><Instagram className="h-3.5 w-3.5" /></a>
+            <a href="#" className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all"><Music2 className="h-3.5 w-3.5" /></a>
           </div>
         </div>
       </div>
 
-      {/* Main Navbar - Optimized */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-sm supports-backdrop-filter:bg-white/60 shadow-sm">
+      {/* Main Navbar - Enhanced */}
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/50">
         <div className="container mx-auto flex h-20 items-center justify-between px-4">
-          <a href="/" className="flex items-center gap-2 group">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">H</div>
+          <a href="/" className="flex items-center gap-3 group">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-pink-700 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-primary/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              H
+            </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tighter text-slate-900 leading-none">HOMEWORK</span>
-              <span className="text-[10px] font-bold tracking-[0.2em] text-primary leading-none mt-1">UAE CLEANING</span>
+              <span className="text-2xl font-black tracking-tight text-slate-900 leading-none">HOMEWORK</span>
+              <span className="text-[11px] font-black tracking-[0.25em] text-primary leading-none mt-1.5">UAE CLEANING</span>
             </div>
           </a>
 
-          <nav className="hidden lg:flex items-center space-x-8 text-sm font-bold uppercase tracking-wide">
-            <a href="/" className="text-slate-600 hover:text-primary transition-colors">Home</a>
-            <a href="/about" className="text-slate-600 hover:text-primary transition-colors">About Us</a>
+          <nav className="hidden lg:flex items-center space-x-1 text-sm font-bold">
+            <a href="/" className="px-4 py-2 text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all">Home</a>
+            <a href="/about" className="px-4 py-2 text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all">About</a>
             <div className="relative group py-8">
-              <a href="/services" className="text-slate-600 group-hover:text-primary transition-colors flex items-center gap-1">
+              <a href="/services" className="px-4 py-2 text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all flex items-center gap-1.5">
                 Services <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
               </a>
               
-              {/* Dropdown Menu - Mega Menu Style Expanded */}
-              <div className="absolute top-full -left-80 w-275 bg-white border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[3rem] p-10 opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-500 z-50">
+              {/* Dropdown Menu - Mega Menu Style Enhanced */}
+              <div className="absolute top-full -left-80 w-275 bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-2xl shadow-slate-300/50 rounded-[2.5rem] p-12 opacity-0 translate-y-6 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-500 z-50">
                 <div className="grid grid-cols-3 gap-10">
                   {/* Normal Cleaning Section */}
                   <div>
-                    <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                      <span className="h-1 w-6 bg-primary rounded-full" />
+                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-3 pb-3 border-b-2 border-primary/20">
+                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      </div>
                       Normal Cleaning
                     </h4>
                     <div className="grid gap-1">
@@ -157,14 +168,16 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
             {/* More Link with Mega Dropdown */}
             <div className="relative group py-4">
-              <button className="flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-primary transition-all uppercase tracking-wider group">
+              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all group">
                 More <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform" />
               </button>
               
-              <div className="absolute top-full -left-20 w-100 bg-white border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] p-8 opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-500 z-50">
+              <div className="absolute top-full -left-20 w-100 bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-2xl shadow-slate-300/50 rounded-[2rem] p-10 opacity-0 translate-y-6 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-500 z-50">
                 <div className="grid gap-2">
-                  <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                    <span className="h-1 w-6 bg-primary rounded-full" />
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-3 pb-3 border-b-2 border-primary/20">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <span className="h-2 w-2 rounded-full bg-primary" />
+                    </div>
                     Resources
                   </h4>
                   
@@ -191,16 +204,16 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            <a href="/blog" className="text-slate-600 font-bold text-sm uppercase tracking-wider hover:text-primary transition-colors">Blog</a>
-            <a href="/contact" className="text-slate-600 font-bold text-sm uppercase tracking-wider hover:text-primary transition-colors">Contact</a>
+            <a href="/blog" className="px-4 py-2 text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all font-bold text-sm">Blog</a>
+            <a href="/contact" className="px-4 py-2 text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all font-bold text-sm">Contact</a>
           </nav>
 
           <div className="flex items-center gap-4">
             <a 
               href="/book-service" 
-              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-pink-700 hover:shadow-primary/40 active:scale-95"
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-primary to-pink-700 px-8 text-sm font-black text-white shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 active:scale-95 tracking-wider border-2 border-white/20"
             >
-              BOOK ONLINE
+              BOOK NOW
             </a>
           </div>
         </div>
