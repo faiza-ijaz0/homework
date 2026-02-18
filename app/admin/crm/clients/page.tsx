@@ -124,17 +124,17 @@ export default function ClientProfiles() {
     notes: ''
   })
 
-  // Fetch clients from both leads (Won status) and clients collection
+  // Fetch clients from both leads (Won OR Qualified status) and clients collection
   useEffect(() => {
     const fetchAllClients = async () => {
       try {
         const allClients: Client[] = []
         const clientMap = new Map<string, boolean>()
         
-        // 1. Fetch from 'leads' collection where status is 'Won'
+        // 1. Fetch from 'leads' collection where status is 'Won' OR 'Qualified'
         const leadsQuery = query(
           collection(db, 'leads'),
-          where('status', '==', 'Won')
+          where('status', 'in', ['Won', 'Qualified']) // ✅ Changed: Now includes both Won and Qualified
         )
         
         const leadsSnapshot = await getDocs(leadsQuery)
@@ -827,7 +827,7 @@ if (sortConfig.key) {
           <div className="p-12 text-center">
             <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Clients Found</h3>
-            <p className="text-gray-600 mb-6">Start by adding your first client or check if you have "Won" status leads</p>
+            <p className="text-gray-600 mb-6">Start by adding your first client or check if you have "Won" or "Qualified" status leads</p>
             <button
               onClick={() => setShowAddClient(true)}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
@@ -1590,4 +1590,3 @@ if (sortConfig.key) {
     </div>
   )
 }
-

@@ -9,7 +9,7 @@
 // import { db } from '@/lib/firebase'
 // import { collection, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore'
 
-// // Firebase se real survey interface
+// // Firebase se real survey interface - UPDATED with selectedClient
 // interface FirebaseSurvey {
 //   id: string
 //   title: string
@@ -22,6 +22,14 @@
 //   sendCount?: number
 //   completionRate?: number
 //   priority?: 'Low' | 'Medium' | 'High' | 'Critical'
+//   // ✅ Add selectedClient
+//   selectedClient?: {
+//     id: string
+//     name: string
+//     company: string
+//     type: 'client' | 'lead'
+//   }
+//   // Keep these for backward compatibility
 //   clientName?: string
 //   company?: string
 //   serviceType?: string
@@ -38,7 +46,7 @@
 //   const [selectedDetailSurvey, setSelectedDetailSurvey] = useState<FirebaseSurvey | null>(null)
 //   const [loading, setLoading] = useState(true)
 
-//   // Fetch real surveys from Firebase
+//   // Fetch real surveys from Firebase - FIXED to include selectedClient
 //   useEffect(() => {
 //     setLoading(true)
 //     const surveysRef = collection(db, 'surveys')
@@ -48,6 +56,14 @@
 //       const surveysList: FirebaseSurvey[] = []
 //       snapshot.forEach((doc) => {
 //         const data = doc.data()
+        
+//         // Debug: Log raw data
+//         console.log('🔥 Raw Firebase data for survey:', doc.id, {
+//           title: data.title,
+//           selectedClient: data.selectedClient,
+//           hasSelectedClient: !!data.selectedClient
+//         })
+        
 //         const survey: FirebaseSurvey = {
 //           id: doc.id,
 //           title: data.title || 'Untitled Survey',
@@ -62,12 +78,24 @@
 //             ? Math.round((data.responsesCount / data.sendCount) * 100)
 //             : 0,
 //           priority: data.priority || 'Medium',
+//           // ✅ CRITICAL: selectedClient ko include karo
+//           selectedClient: data.selectedClient || undefined,
+//           // Keep these for backward compatibility
 //           clientName: data.clientName || 'General Client',
 //           company: data.company || 'General Company',
 //           serviceType: data.serviceType || 'General Survey'
 //         }
 //         surveysList.push(survey)
 //       })
+      
+//       console.log('📊 Processed surveys list:', surveysList.map(s => ({
+//         id: s.id,
+//         title: s.title,
+//         hasSelectedClient: !!s.selectedClient,
+//         selectedClientName: s.selectedClient?.name,
+//         selectedClientCompany: s.selectedClient?.company
+//       })))
+      
 //       setSurveys(surveysList)
 //       setLoading(false)
 //     })
@@ -109,23 +137,30 @@
 //     }
 //   }
 
-//   // Duplicate survey in Firebase
+//   // Duplicate survey in Firebase - UPDATED to include selectedClient
 //   const handleDuplicateSurvey = async (survey: FirebaseSurvey) => {
 //     try {
-//       const newSurveyData = {
+//       const newSurveyData: any = {
 //         title: `${survey.title} (Copy)`,
 //         description: survey.description,
 //         sections: survey.sections,
 //         status: 'draft',
 //         priority: survey.priority || 'Medium',
-//         clientName: survey.clientName,
-//         company: survey.company,
-//         serviceType: survey.serviceType,
 //         responsesCount: 0,
 //         sendCount: 0,
 //         createdAt: serverTimestamp(),
 //         updatedAt: serverTimestamp()
 //       }
+      
+//       // ✅ Include selectedClient if it exists
+//       if (survey.selectedClient) {
+//         newSurveyData.selectedClient = survey.selectedClient
+//       }
+      
+//       // Keep backward compatibility fields
+//       newSurveyData.clientName = survey.clientName
+//       newSurveyData.company = survey.company
+//       newSurveyData.serviceType = survey.serviceType
       
 //       await addDoc(collection(db, 'surveys'), newSurveyData)
 //       alert('Survey duplicated successfully!')
@@ -266,11 +301,11 @@
 //   )
 // }
 
-
 // new code
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, FileText, Settings, TrendingUp, Share } from 'lucide-react'
 import SurveysDashboard from './components/SurveysDashboard'
 import SurveyFormSection from './components/SurveyFormSection'
@@ -306,6 +341,7 @@ interface FirebaseSurvey {
 }
 
 export default function SurveysModule() {
+  const router = useRouter()
   const [surveys, setSurveys] = useState<FirebaseSurvey[]>([])
   const [activeTab, setActiveTab] = useState<'dashboard' | 'create' | 'templates' | 'results'>('dashboard')
   const [searchTerm, setSearchTerm] = useState('')
@@ -316,7 +352,7 @@ export default function SurveysModule() {
   const [selectedDetailSurvey, setSelectedDetailSurvey] = useState<FirebaseSurvey | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fetch real surveys from Firebase - FIXED to include selectedClient
+  // Fetch real surveys from Firebase
   useEffect(() => {
     setLoading(true)
     const surveysRef = collection(db, 'surveys')
@@ -372,6 +408,18 @@ export default function SurveysModule() {
     
     return () => unsubscribe()
   }, [])
+
+  // ✅ FIXED: Edit Survey - Navigate to edit page with ID
+  const handleEditSurvey = (surveyId: string) => {
+    console.log('✏️ Editing survey:', surveyId)
+    router.push(`/admin/surveys/${surveyId}`)
+  }
+
+  // ✅ Create New Survey - Navigate to new survey page
+  const handleCreateNewSurvey = () => {
+    console.log('🆕 Creating new survey')
+    router.push('/admin/surveys/new')
+  }
 
   // Delete survey from Firebase
   const handleDeleteSurvey = (id: string) => {
@@ -449,22 +497,11 @@ export default function SurveysModule() {
     }
   }
 
-  // Edit survey
-  const handleEditSurvey = (surveyId: string) => {
-    // SurveyFormSection internally handles edit mode
-    setActiveTab('create')
-  }
-
   // Share survey
   const handleShareSurvey = (surveyId: string) => {
     const link = `${window.location.origin}/survey/${surveyId}`
     navigator.clipboard.writeText(link)
     alert('Survey link copied to clipboard!\n\nShare this link with respondents: ' + link)
-  }
-
-  // Create new survey
-  const handleCreateNewSurvey = () => {
-    setActiveTab('create')
   }
 
   const tabs = [
@@ -491,7 +528,7 @@ export default function SurveysModule() {
               onClick={() => {
                 setActiveTab(tab.id)
                 if (tab.id === 'create') {
-                  // No need to reset selectedSurveyId anymore
+                  handleCreateNewSurvey()
                 }
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded transition-colors whitespace-nowrap text-[12px] uppercase font-bold tracking-tight ${
@@ -535,7 +572,7 @@ export default function SurveysModule() {
         {activeTab === 'templates' && (
           <SurveyTemplatesSection onUseTemplate={(id) => {
             // Template use functionality
-            setActiveTab('create')
+            handleCreateNewSurvey()
           }} />
         )}
 

@@ -1,8 +1,7 @@
-
 // 'use client'
 
 // import { useState, useEffect } from 'react'
-// import { Plus, Trash2, Save, Eye, Copy, Download, X, ChevronDown, ChevronUp, Hash, Calendar, Star, ThumbsUp, CheckSquare, Radio, Type, MessageSquare, Share, Edit2 } from 'lucide-react'
+// import { Plus, Trash2, Save, Eye, Copy, Download, X, ChevronDown, ChevronUp, Hash, Calendar, Star, ThumbsUp, CheckSquare, Radio, Type, MessageSquare, Share, Edit2, Users, Search } from 'lucide-react'
 // import { db } from '@/lib/firebase'
 // import { 
 //   collection, 
@@ -14,9 +13,22 @@
 //   deleteDoc,
 //   updateDoc,
 //   serverTimestamp,
-//   getDoc
+//   getDoc,
+//   getDocs
 // } from 'firebase/firestore'
 // import { useParams } from 'next/navigation'
+
+// // Add Client/Lead interface
+// interface ClientLead {
+//   id: string
+//   name: string
+//   company: string
+//   email: string
+//   phone: string
+//   type: 'client' | 'lead'
+//   status?: string
+//   tier?: string
+// }
 
 // interface Question {
 //   id: string
@@ -47,6 +59,15 @@
 //   createdAt: any
 //   updatedAt: any
 //   responsesCount: number
+//   // Add selected client/lead to survey
+//   selectedClient?: {
+//     phone: string
+//     email: string
+//     id: string
+//     name: string
+//     company: string
+//     type: 'client' | 'lead'
+//   }
 // }
 
 // export default function SurveyFormSection() {
@@ -63,10 +84,15 @@
 //   ])
 //   const [title, setTitle] = useState('New Survey')
 //   const [description, setDescription] = useState('')
-//   const [loading, setLoading] = useState(false)
 //   const [showSavedSurveys, setShowSavedSurveys] = useState(false)
 //   const [shareLink, setShareLink] = useState<string | null>(null)
 //   const [showShareModal, setShowShareModal] = useState(false)
+  
+//   // New state for clients and leads
+//   const [clientsLeads, setClientsLeads] = useState<ClientLead[]>([])
+//   const [selectedClientLead, setSelectedClientLead] = useState<ClientLead | null>(null)
+//   const [searchTerm, setSearchTerm] = useState('')
+//   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   
 //   // New state for question modal
 //   const [showQuestionModal, setShowQuestionModal] = useState(false)
@@ -79,6 +105,89 @@
 //   })
 //   const [optionInput, setOptionInput] = useState('')
 //   const [optionsList, setOptionsList] = useState<string[]>([])
+
+//   // Fetch clients and leads from Firebase
+//   useEffect(() => {
+//     const fetchClientsAndLeads = async () => {
+//       try {
+//         const clients: ClientLead[] = []
+//         const leads: ClientLead[] = []
+        
+//         // Fetch clients
+//         const clientsQuery = query(collection(db, 'clients'))
+//         const clientsSnapshot = await getDocs(clientsQuery)
+//         clientsSnapshot.forEach((doc) => {
+//           const data = doc.data()
+//           clients.push({
+//             id: doc.id,
+//             name: data.name || '',
+//             company: data.company || '',
+//             email: data.email || '',
+//             phone: data.phone || '',
+//             type: 'client',
+//             status: data.status || 'Active',
+//             tier: data.tier || ''
+//           })
+//         })
+        
+//         // Fetch leads
+//         const leadsQuery = query(collection(db, 'leads'))
+//         const leadsSnapshot = await getDocs(leadsQuery)
+//         leadsSnapshot.forEach((doc) => {
+//           const data = doc.data()
+//           leads.push({
+//             id: doc.id,
+//             name: data.name || '',
+//             company: data.company || '',
+//             email: data.email || '',
+//             phone: data.phone || '',
+//             type: 'lead',
+//             status: data.status || 'New',
+//             tier: data.tier || ''
+//           })
+//         })
+        
+//         // Combine and sort
+//         setClientsLeads([...clients, ...leads].sort((a, b) => a.name.localeCompare(b.name)))
+//       } catch (error) {
+//         console.error('Error fetching clients and leads:', error)
+//       }
+//     }
+    
+//     fetchClientsAndLeads()
+//   }, [])
+
+//   // Filter clients/leads based on search
+//   const filteredClientsLeads = clientsLeads.filter(item => {
+//     const searchLower = searchTerm.toLowerCase()
+//     return (
+//       item.name.toLowerCase().includes(searchLower) ||
+//       item.company.toLowerCase().includes(searchLower) ||
+//       item.email.toLowerCase().includes(searchLower) ||
+//       item.phone.includes(searchTerm)
+//     )
+//   })
+
+//   // Toggle dropdown
+//   const toggleDropdown = () => {
+//     setIsDropdownOpen(!isDropdownOpen)
+//     if (!isDropdownOpen) {
+//       setSearchTerm('')
+//     }
+//   }
+
+//   // Select client/lead
+//   const selectClientLead = (item: ClientLead) => {
+//     setSelectedClientLead(item)
+//     setSearchTerm('')
+//     setIsDropdownOpen(false)
+//   }
+
+//   // Clear selection
+//   const clearSelection = () => {
+//     setSelectedClientLead(null)
+//     setSearchTerm('')
+//   }
 
 //   // Fetch specific survey when editing from URL
 //   useEffect(() => {
@@ -95,12 +204,18 @@
 //             status: data.status || 'draft',
 //             createdAt: data.createdAt,
 //             updatedAt: data.updatedAt,
-//             responsesCount: data.responsesCount || 0
+//             responsesCount: data.responsesCount || 0,
+//             selectedClient: data.selectedClient
 //           }
 //           setSelectedSurvey(survey)
 //           setTitle(survey.title)
 //           setDescription(survey.description)
 //           setSections(survey.sections)
+          
+//           // Set selected client if exists
+//           if (data.selectedClient) {
+//             setSelectedClientLead(data.selectedClient)
+//           }
 //         }
 //       } catch (error) {
 //         console.error('Error fetching survey:', error)
@@ -130,7 +245,8 @@
 //           status: data.status || 'draft',
 //           createdAt: data.createdAt,
 //           updatedAt: data.updatedAt,
-//           responsesCount: data.responsesCount || 0
+//           responsesCount: data.responsesCount || 0,
+//           selectedClient: data.selectedClient
 //         })
 //       })
 //       setSurveys(surveysList)
@@ -140,13 +256,28 @@
 //   }, [])
 
 //   // Load selected survey data
-//   useEffect(() => {
-//     if (selectedSurvey) {
-//       setTitle(selectedSurvey.title)
-//       setDescription(selectedSurvey.description)
-//       setSections(selectedSurvey.sections)
+//  useEffect(() => {
+//   if (selectedSurvey) {
+//     setTitle(selectedSurvey.title)
+//     setDescription(selectedSurvey.description)
+//     setSections(selectedSurvey.sections)
+    
+//     if (selectedSurvey.selectedClient) {
+//       // Create a complete ClientLead object with defaults for missing fields
+//       const clientLead: ClientLead = {
+//         id: selectedSurvey.selectedClient.id,
+//         name: selectedSurvey.selectedClient.name,
+//         company: selectedSurvey.selectedClient.company,
+//         type: selectedSurvey.selectedClient.type,
+//         email: selectedSurvey.selectedClient.email || '',  // Use existing or default
+//         phone: selectedSurvey.selectedClient.phone || ''   // Use existing or default
+//       }
+//       setSelectedClientLead(clientLead)
+//     } else {
+//       setSelectedClientLead(null)
 //     }
-//   }, [selectedSurvey])
+//   }
+// }, [selectedSurvey])
 
 //   const addSection = () => {
 //     const newSection: FormSection = {
@@ -371,18 +502,18 @@
 //     return {
 //       ...data,
 //       sections: cleanedSections,
-//       description: data.description || ''
+//       description: data.description || '',
+//       selectedClient: data.selectedClient || null
 //     }
 //   }
 
-//   // Save survey to Firebase
+//   // Save survey to Firebase - REMOVED LOADING STATES
 //   const saveSurvey = async (status: 'draft' | 'published' = 'draft') => {
 //     if (!title.trim()) {
 //       alert('Please enter a survey title')
 //       return
 //     }
 
-//     setLoading(true)
 //     try {
 //       const surveyData = cleanSurveyData({
 //         title: title.trim(),
@@ -390,7 +521,13 @@
 //         sections: sections,
 //         status: status,
 //         updatedAt: serverTimestamp(),
-//         responsesCount: selectedSurvey?.responsesCount || 0
+//         responsesCount: selectedSurvey?.responsesCount || 0,
+//         selectedClient: selectedClientLead ? {
+//           id: selectedClientLead.id,
+//           name: selectedClientLead.name,
+//           company: selectedClientLead.company,
+//           type: selectedClientLead.type
+//         } : null
 //       })
 
 //       console.log('Saving survey data:', surveyData)
@@ -411,6 +548,8 @@
 
 //       // Reset form
 //       setSelectedSurvey(null)
+//       setSelectedClientLead(null)
+//       setSearchTerm('')
 //       setTitle('New Survey')
 //       setDescription('')
 //       setSections([{
@@ -422,8 +561,6 @@
 //     } catch (error) {
 //       console.error('Error saving survey:', error)
 //       alert('Error saving survey. Please try again.')
-//     } finally {
-//       setLoading(false)
 //     }
 //   }
 
@@ -456,6 +593,8 @@
 //       await deleteDoc(doc(db, 'surveys', surveyId))
 //       if (selectedSurvey?.id === surveyId) {
 //         setSelectedSurvey(null)
+//         setSelectedClientLead(null)
+//         setSearchTerm('')
 //       }
 //       alert('Survey deleted successfully!')
 //     } catch (error) {
@@ -474,7 +613,8 @@
 //         status: 'draft',
 //         createdAt: serverTimestamp(),
 //         updatedAt: serverTimestamp(),
-//         responsesCount: 0
+//         responsesCount: 0,
+//         selectedClient: survey.selectedClient
 //       })
       
 //       await addDoc(collection(db, 'surveys'), newSurveyData)
@@ -493,7 +633,8 @@
 //       sections: survey.sections,
 //       createdAt: survey.createdAt?.toDate?.()?.toISOString() || survey.createdAt,
 //       status: survey.status,
-//       responsesCount: survey.responsesCount
+//       responsesCount: survey.responsesCount,
+//       selectedClient: survey.selectedClient
 //     }
     
 //     const dataStr = JSON.stringify(surveyData, null, 2)
@@ -962,6 +1103,136 @@
 //         </div>
 //       )}
 
+//       {/* NEW: Client/Lead Selection Dropdown - ABOVE Survey Title */}
+//       <div className="bg-white rounded border border-gray-300 p-4">
+//         <div className="space-y-3">
+//           <div>
+//             <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1 flex items-center gap-1">
+//               <Users className="w-3 h-3" />
+//               SELECT CLIENT / LEAD *
+//             </label>
+            
+//             {/* Dropdown Toggle Button - FIXED: No nested buttons */}
+//             <div className="relative">
+//               <button
+//                 onClick={toggleDropdown}
+//                 type="button"
+//                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white text-black focus:outline-none focus:ring-1 focus:ring-black flex items-center justify-between"
+//               >
+//                 <div className="flex items-center gap-2">
+//                   <Users className="w-4 h-4 text-gray-400" />
+//                   <span className={selectedClientLead ? "text-black" : "text-gray-500"}>
+//                     {selectedClientLead 
+//                       ? `${selectedClientLead.name} - ${selectedClientLead.company} (${selectedClientLead.type})`
+//                       : "Select a client or lead..."
+//                     }
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center gap-1">
+//                   {selectedClientLead && (
+//                     <span
+//                       onClick={(e) => {
+//                         e.stopPropagation()
+//                         clearSelection()
+//                       }}
+//                       className="p-1 hover:bg-gray-100 rounded cursor-pointer"
+//                     >
+//                       <X className="w-4 h-4 text-gray-400" />
+//                     </span>
+//                   )}
+//                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+//                 </div>
+//               </button>
+
+//               {/* Dropdown Menu */}
+//               {isDropdownOpen && (
+//                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-96 overflow-hidden">
+//                   {/* Search Input */}
+//                   <div className="p-2 border-b border-gray-200">
+//                     <div className="flex items-center gap-2 px-2 py-1 border border-gray-300 rounded bg-white">
+//                       <Search className="w-4 h-4 text-gray-400" />
+//                       <input
+//                         type="text"
+//                         value={searchTerm}
+//                         onChange={(e) => setSearchTerm(e.target.value)}
+//                         placeholder="Search by name, company, email..."
+//                         className="w-full text-sm bg-transparent border-0 focus:outline-none focus:ring-0 p-0"
+//                         autoFocus
+//                       />
+//                     </div>
+//                   </div>
+
+//                   {/* Results */}
+//                   <div className="max-h-60 overflow-y-auto">
+//                     {filteredClientsLeads.length > 0 ? (
+//                       filteredClientsLeads.map((item) => (
+//                         <div
+//                           key={`${item.type}-${item.id}`}
+//                           onClick={() => selectClientLead(item)}
+//                           className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
+//                         >
+//                           <div className="flex items-center justify-between">
+//                             <div className="flex-1">
+//                               <div className="flex items-center gap-2">
+//                                 <span className="font-medium text-black">{item.name}</span>
+//                                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+//                                   item.type === 'client' 
+//                                     ? 'bg-blue-100 text-blue-800' 
+//                                     : 'bg-green-100 text-green-800'
+//                                 }`}>
+//                                   {item.type.toUpperCase()}
+//                                 </span>
+//                                 {item.status && (
+//                                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-800">
+//                                     {item.status}
+//                                   </span>
+//                                 )}
+//                               </div>
+//                               <div className="text-xs text-gray-500 mt-0.5">
+//                                 <span>{item.company}</span>
+//                                 {item.email && <span> • {item.email}</span>}
+//                                 {item.phone && <span> • {item.phone}</span>}
+//                               </div>
+//                             </div>
+//                             {item.tier && (
+//                               <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 ml-2">
+//                                 {item.tier}
+//                               </span>
+//                             )}
+//                           </div>
+//                         </div>
+//                       ))
+//                     ) : (
+//                       <div className="p-4 text-sm text-gray-500 text-center">
+//                         No clients or leads found
+//                       </div>
+//                     )}
+//                   </div>
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Selected Item Display (when dropdown is closed) */}
+//             {selectedClientLead && !isDropdownOpen && (
+//               <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200 flex items-center gap-2">
+//                 <span className="text-xs font-medium text-gray-700">Selected:</span>
+//                 <span className="text-xs text-black">{selectedClientLead.name}</span>
+//                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+//                   {selectedClientLead.company}
+//                 </span>
+//                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+//                   selectedClientLead.type === 'client' 
+//                     ? 'bg-blue-100 text-blue-800' 
+//                     : 'bg-green-100 text-green-800'
+//                 }`}>
+//                   {selectedClientLead.type.toUpperCase()}
+//                 </span>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+
 //       {/* Header */}
 //       <div className="bg-white rounded border border-gray-300 p-4">
 //         <div className="flex justify-between items-center mb-3">
@@ -987,6 +1258,8 @@
 //                 <button
 //                   onClick={() => {
 //                     setSelectedSurvey(null)
+//                     setSelectedClientLead(null)
+//                     setSearchTerm('')
 //                     setTitle('New Survey')
 //                     setDescription('')
 //                     setSections([{
@@ -1061,6 +1334,13 @@
 //                       </span>
 //                     </div>
 //                     <p className="text-xs text-gray-500 mt-1">{survey.description}</p>
+//                     {survey.selectedClient && (
+//                       <div className="flex items-center gap-2 mt-1">
+//                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+//                           {survey.selectedClient.name} - {survey.selectedClient.company} ({survey.selectedClient.type})
+//                         </span>
+//                       </div>
+//                     )}
 //                   </div>
 //                   <div className="flex items-center gap-1">
 //                     <button
@@ -1215,32 +1495,23 @@
 //         </button>
 //       )}
 
-//       {/* Action Buttons */}
+//       {/* Action Buttons - REMOVED LOADING STATES */}
 //       {!showSavedSurveys && (
 //         <div className="flex gap-2 sticky bottom-0 bg-white border-t border-gray-300 py-3 -mx-4 -mb-4 px-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
 //           <button 
 //             onClick={() => saveSurvey('draft')}
-//             disabled={loading || !title.trim()}
+//             disabled={!title.trim()}
 //             className="flex-1 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 border border-gray-300 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
 //           >
-//             {loading ? (
-//               <>
-//                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent"></div>
-//                 Saving...
-//               </>
-//             ) : (
-//               <>
-//                 <Save className="w-4 h-4" />
-//                 {selectedSurvey ? 'Update Draft' : 'Save Draft'}
-//               </>
-//             )}
+//             <Save className="w-4 h-4" />
+//             {selectedSurvey ? 'Update Draft' : 'Save Draft'}
 //           </button>
 //           <button 
 //             onClick={() => saveSurvey('published')}
-//             disabled={loading || !title.trim()}
+//             disabled={!title.trim()}
 //             className="flex-1 px-4 py-2 text-xs font-bold uppercase tracking-widest bg-black text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 //           >
-//             {loading ? 'Publishing...' : 'Publish Survey'}
+//             Publish Survey
 //           </button>
 //         </div>
 //       )}
@@ -1267,7 +1538,7 @@ import {
   getDoc,
   getDocs
 } from 'firebase/firestore'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 // Add Client/Lead interface
 interface ClientLead {
@@ -1310,10 +1581,9 @@ interface Survey {
   createdAt: any
   updatedAt: any
   responsesCount: number
-  // Add selected client/lead to survey
   selectedClient?: {
-    phone: string
-    email: string
+    phone?: string
+    email?: string
     id: string
     name: string
     company: string
@@ -1322,6 +1592,7 @@ interface Survey {
 }
 
 export default function SurveyFormSection() {
+  const router = useRouter()
   const params = useParams()
   const [surveys, setSurveys] = useState<Survey[]>([])
   const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null)
@@ -1440,13 +1711,16 @@ export default function SurveyFormSection() {
     setSearchTerm('')
   }
 
-  // Fetch specific survey when editing from URL
+  // ✅ FIXED: Fetch specific survey when editing from URL
   useEffect(() => {
     const fetchSurveyById = async (id: string) => {
       try {
+        console.log('🔍 Fetching survey with ID:', id)
         const surveyDoc = await getDoc(doc(db, 'surveys', id))
         if (surveyDoc.exists()) {
           const data = surveyDoc.data()
+          console.log('✅ Survey data found:', data)
+          
           const survey: Survey = {
             id: surveyDoc.id,
             title: data.title || '',
@@ -1458,6 +1732,7 @@ export default function SurveyFormSection() {
             responsesCount: data.responsesCount || 0,
             selectedClient: data.selectedClient
           }
+          
           setSelectedSurvey(survey)
           setTitle(survey.title)
           setDescription(survey.description)
@@ -1465,17 +1740,35 @@ export default function SurveyFormSection() {
           
           // Set selected client if exists
           if (data.selectedClient) {
+            console.log('✅ Setting selected client:', data.selectedClient)
             setSelectedClientLead(data.selectedClient)
           }
+        } else {
+          console.log('❌ Survey not found with ID:', id)
         }
       } catch (error) {
         console.error('Error fetching survey:', error)
       }
     }
 
-    if (params?.id) {
+    // Check if we have an ID in the URL
+    if (params?.id && params.id !== 'new') {
+      console.log('📝 Editing mode: ID =', params.id)
       fetchSurveyById(params.id as string)
       setShowSavedSurveys(false)
+    } else {
+      console.log('🆕 Create new survey mode')
+      // Reset form for new survey
+      setSelectedSurvey(null)
+      setSelectedClientLead(null)
+      setTitle('New Survey')
+      setDescription('')
+      setSections([{
+        id: 'section-1',
+        title: 'Basic Information',
+        description: 'Please provide your feedback',
+        questions: []
+      }])
     }
   }, [params?.id])
 
@@ -1505,30 +1798,6 @@ export default function SurveyFormSection() {
     
     return () => unsubscribe()
   }, [])
-
-  // Load selected survey data
- useEffect(() => {
-  if (selectedSurvey) {
-    setTitle(selectedSurvey.title)
-    setDescription(selectedSurvey.description)
-    setSections(selectedSurvey.sections)
-    
-    if (selectedSurvey.selectedClient) {
-      // Create a complete ClientLead object with defaults for missing fields
-      const clientLead: ClientLead = {
-        id: selectedSurvey.selectedClient.id,
-        name: selectedSurvey.selectedClient.name,
-        company: selectedSurvey.selectedClient.company,
-        type: selectedSurvey.selectedClient.type,
-        email: selectedSurvey.selectedClient.email || '',  // Use existing or default
-        phone: selectedSurvey.selectedClient.phone || ''   // Use existing or default
-      }
-      setSelectedClientLead(clientLead)
-    } else {
-      setSelectedClientLead(null)
-    }
-  }
-}, [selectedSurvey])
 
   const addSection = () => {
     const newSection: FormSection = {
@@ -1758,7 +2027,7 @@ export default function SurveyFormSection() {
     }
   }
 
-  // Save survey to Firebase - REMOVED LOADING STATES
+  // ✅ FIXED: Save survey to Firebase - UPDATE vs CREATE
   const saveSurvey = async (status: 'draft' | 'published' = 'draft') => {
     if (!title.trim()) {
       alert('Please enter a survey title')
@@ -1784,31 +2053,26 @@ export default function SurveyFormSection() {
       console.log('Saving survey data:', surveyData)
 
       if (selectedSurvey && selectedSurvey.id) {
-        // Update existing survey
+        // ✅ UPDATE EXISTING SURVEY
+        console.log('📝 UPDATING existing survey:', selectedSurvey.id)
         const surveyDoc = doc(db, 'surveys', selectedSurvey.id)
         await updateDoc(surveyDoc, surveyData)
         alert('Survey updated successfully!')
+        
+        // Navigate back to dashboard after update
+        router.push('/admin/surveys')
       } else {
-        // Create new survey
+        // ✅ CREATE NEW SURVEY
+        console.log('🆕 CREATING new survey')
         await addDoc(collection(db, 'surveys'), {
           ...surveyData,
           createdAt: serverTimestamp()
         })
         alert(`Survey ${status === 'published' ? 'published' : 'saved as draft'} successfully!`)
+        
+        // Navigate back to dashboard after create
+        router.push('/admin/surveys')
       }
-
-      // Reset form
-      setSelectedSurvey(null)
-      setSelectedClientLead(null)
-      setSearchTerm('')
-      setTitle('New Survey')
-      setDescription('')
-      setSections([{
-        id: 'section-1',
-        title: 'Basic Information',
-        description: 'Please provide your feedback',
-        questions: []
-      }])
     } catch (error) {
       console.error('Error saving survey:', error)
       alert('Error saving survey. Please try again.')
@@ -1817,8 +2081,8 @@ export default function SurveyFormSection() {
 
   // Load survey from saved list
   const loadSurvey = (survey: Survey) => {
-    setSelectedSurvey(survey)
-    setShowSavedSurveys(false)
+    // Navigate to edit mode
+    router.push(`/admin/surveys/${survey.id}`)
   }
 
   // Handle share survey
@@ -2354,16 +2618,16 @@ export default function SurveyFormSection() {
         </div>
       )}
 
-      {/* NEW: Client/Lead Selection Dropdown - ABOVE Survey Title */}
+      {/* Client/Lead Selection Dropdown */}
       <div className="bg-white rounded border border-gray-300 p-4">
         <div className="space-y-3">
           <div>
             <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1 flex items-center gap-1">
               <Users className="w-3 h-3" />
-              SELECT CLIENT / LEAD *
+              SELECT CLIENT / LEAD
             </label>
             
-            {/* Dropdown Toggle Button - FIXED: No nested buttons */}
+            {/* Dropdown Toggle Button */}
             <div className="relative">
               <button
                 onClick={toggleDropdown}
@@ -2463,7 +2727,7 @@ export default function SurveyFormSection() {
               )}
             </div>
 
-            {/* Selected Item Display (when dropdown is closed) */}
+            {/* Selected Item Display */}
             {selectedClientLead && !isDropdownOpen && (
               <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200 flex items-center gap-2">
                 <span className="text-xs font-medium text-gray-700">Selected:</span>
@@ -2746,7 +3010,7 @@ export default function SurveyFormSection() {
         </button>
       )}
 
-      {/* Action Buttons - REMOVED LOADING STATES */}
+      {/* Action Buttons */}
       {!showSavedSurveys && (
         <div className="flex gap-2 sticky bottom-0 bg-white border-t border-gray-300 py-3 -mx-4 -mb-4 px-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <button 
