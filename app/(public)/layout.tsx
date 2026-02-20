@@ -89,15 +89,15 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       {/* Main Navbar - Enhanced */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/90 backdrop-blur-xl shadow-lg shadow-slate-200/50">
         <div className="container mx-auto flex h-20 items-center justify-between px-4">
-          <a href="/" className="flex items-center gap-3 group">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-pink-700 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-primary/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              H
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tight text-slate-900 leading-none">HOMEWORK</span>
-              <span className="text-[11px] font-black tracking-[0.25em] text-primary leading-none mt-1.5">UAE CLEANING</span>
-            </div>
-          </a>
+          <a href="/" className="flex items-center">
+  <div className="h-55 w-55"> {/* Size increased to 16 */}
+    <img 
+      src="/logo.jpeg" 
+      alt="Logo" 
+      className="w-full h-full object-contain"
+    />
+  </div>
+</a>
 
           <nav className="hidden lg:flex items-center space-x-1 text-sm font-bold">
             <a href="/" className="px-4 py-2 text-slate-700 hover:text-primary hover:bg-slate-50 rounded-xl transition-all">Home</a>
@@ -258,12 +258,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-4">
 
-           <Link 
-  href="/route" 
-  className="group flex items-center justify-center w-10 h-10 rounded-full bg-pink-600 hover:bg-pink-500 transition-all duration-300 shadow-md hover:shadow-lg"
->
-  <User className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-200" />
-</Link>
+          
             
             <a 
               href="/book-service" 

@@ -1059,20 +1059,25 @@ export default function FinanceAnalyticsPage() {
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <RePieChart>
-                      <Pie
-                        data={revenueByCategory}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {revenueByCategory.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
+// Fix for the Pie Chart label
+<Pie
+  data={revenueByCategory}
+  cx="50%"
+  cy="50%"
+  innerRadius={60}
+  outerRadius={100}
+  paddingAngle={5}
+  dataKey="value"
+  label={({ name, percent }) => {
+    // ✅ Fix: Check if percent exists and is a number
+    const percentage = percent && typeof percent === 'number' ? percent * 100 : 0;
+    return `${name} ${percentage.toFixed(0)}%`;
+  }}
+>
+  {revenueByCategory.map((entry, index) => (
+    <Cell key={`cell-${index}`} fill={entry.color} />
+  ))}
+</Pie>
                       <Tooltip
                         contentStyle={{ backgroundColor: 'white', borderColor: '#e5e7eb', color: '#111827' }}
                         formatter={(value: any) => `AED ${value.toLocaleString()}`}
@@ -1170,18 +1175,21 @@ export default function FinanceAnalyticsPage() {
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <RePieChart>
-                      <Pie
-                        data={jobStatusData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {jobStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
+                     <Pie
+            data={revenueByCategory}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={100}
+            paddingAngle={5}
+            dataKey="value"
+            // ✅ FIXED: Default value for percent
+            label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          >
+            {revenueByCategory.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
                       <Tooltip
                         contentStyle={{ backgroundColor: 'white', borderColor: '#e5e7eb', color: '#111827' }}
                       />
