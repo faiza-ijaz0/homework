@@ -103,7 +103,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
-      <ManagerSidebar session={session} open={sidebarOpen} onOpenChange={setSidebarOpen} />
+     
 
       <div className="flex-1 flex flex-col">
         {/* Header */}

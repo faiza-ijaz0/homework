@@ -116,7 +116,7 @@ export default function Jobs() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
-      <ManagerSidebar session={session} open={sidebarOpen} onOpenChange={setSidebarOpen} />
+    
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">

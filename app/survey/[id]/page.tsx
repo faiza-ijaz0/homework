@@ -947,7 +947,7 @@ export default function SurveyPage() {
       for (const file of files) {
         // Check file type
         if (!acceptedFormats.includes(file.type)) {
-          alert(`File type ${file.type} is not accepted. Please upload: ${acceptedFormats.map(f => f.split('/')[1]).join(', ')}`)
+          alert(`File type ${file.type} is not accepted. Please upload: ${acceptedFormats.map((f: string) => f.split('/')[1]).join(', ')}`)
           continue
         }
         

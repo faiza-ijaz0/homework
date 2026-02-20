@@ -271,8 +271,7 @@ export default function ManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
-      <ManagerSidebar session={session} open={sidebarOpen} onOpenChange={setSidebarOpen} />
-
+     
       <main className="flex-1 overflow-auto">
         <div className="space-y-8 p-6 lg:p-8">
           {/* Toast Notification */}

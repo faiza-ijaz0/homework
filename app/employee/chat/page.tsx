@@ -108,8 +108,14 @@ export default function EmployeeChatPage() {
   // States
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [session, setSession] = useState<SessionData | null>(null);
+  const [chatsSidebarOpen, setChatsSidebarOpen] = useState(true);
   const [newMessage, setNewMessage] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
   
   const [messages, setMessages] = useState<Message[]>([]);
   
@@ -126,6 +132,7 @@ export default function EmployeeChatPage() {
   const replyInputRef = useRef<HTMLInputElement>(null);
 
   const [isSending, setIsSending] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // ✅ Get session on mount
   useEffect(() => {
@@ -138,64 +145,68 @@ export default function EmployeeChatPage() {
   }, [router]);
 
   // ============================================
-  // FETCH LOGGED-IN EMPLOYEE ONLY
+  // FETCH ALL EMPLOYEES AND AUTO-SELECT LOGGED-IN EMPLOYEE
   // ============================================
   useEffect(() => {
     if (session) {
-      fetchLoggedInEmployee();
+      fetchEmployeesAndAutoSelect();
     }
   }, [session]);
 
-  const fetchLoggedInEmployee = async () => {
+  const fetchEmployeesAndAutoSelect = async () => {
     try {
-      console.log('🔍 Fetching logged-in employee...');
+      setLoading(true);
+      console.log('🔍 Fetching employees...');
       
-      let employeeData: Employee | null = null;
+      const employeesRef = collection(db, 'employees');
+      const snapshot = await getDocs(employeesRef);
       
-      // Try to find by employeeId first
+      const employeesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name || 'No Name',
+        email: doc.data().email || '',
+        department: doc.data().department || '',
+        position: doc.data().position || ''
+      }));
+      
+      // Sort by name
+      employeesData.sort((a, b) => a.name.localeCompare(b.name));
+      
+      console.log(`✅ Found ${employeesData.length} employees`);
+      setEmployees(employeesData);
+      
+      // ✅ AUTO-SELECT: Find employee by ID from session or email
       if (session?.employeeId) {
-        const employeeDoc = await getDocs(query(collection(db, 'employees'), where('__name__', '==', session.employeeId)));
-        
-        if (!employeeDoc.empty) {
-          const data = employeeDoc.docs[0].data();
-          employeeData = {
-            id: employeeDoc.docs[0].id,
-            name: data.name || 'No Name',
-            email: data.email || '',
-            department: data.department || '',
-            position: data.position || ''
-          };
-          console.log('✅ Found employee by ID:', employeeData.name);
+        // Try to find by employeeId
+        const matchedEmployee = employeesData.find(emp => emp.email === session.employeeId );
+        if (matchedEmployee) {
+          console.log('✅ Auto-selected employee by ID:', matchedEmployee.name);
+          setSelectedEmployeeId(matchedEmployee.id);
+          setSelectedEmployee(matchedEmployee);
+        } else {
+          // Fallback to email search
+          const emailMatch = employeesData.find(emp => emp.email === session.user.email);
+          if (emailMatch) {
+            console.log('✅ Auto-selected employee by email:', emailMatch.name);
+            setSelectedEmployeeId(emailMatch.id);
+            setSelectedEmployee(emailMatch);
+          }
+        }
+      } else if (session?.user.email) {
+        // Try by email if no employeeId
+        const emailMatch = employeesData.find(emp => emp.email === session.user.email);
+        if (emailMatch) {
+          console.log('✅ Auto-selected employee by email:', emailMatch.name);
+          setSelectedEmployeeId(emailMatch.id);
+          setSelectedEmployee(emailMatch);
         }
       }
       
-      // If not found by ID, try by email
-      if (!employeeData && session?.user.email) {
-        const employeesRef = collection(db, 'employees');
-        const q = query(employeesRef, where('email', '==', session.user.email));
-        const snapshot = await getDocs(q);
-        
-        if (!snapshot.empty) {
-          const data = snapshot.docs[0].data();
-          employeeData = {
-            id: snapshot.docs[0].id,
-            name: data.name || 'No Name',
-            email: data.email || '',
-            department: data.department || '',
-            position: data.position || ''
-          };
-          console.log('✅ Found employee by email:', employeeData.name);
-        }
-      }
-      
-      if (employeeData) {
-        setSelectedEmployee(employeeData);
-      } else {
-        console.log('❌ No employee found for logged-in user');
-      }
+      setLoading(false);
       
     } catch (error) {
-      console.error('Error fetching employee:', error);
+      console.error('Error fetching employees:', error);
+      setLoading(false);
     }
   };
 
@@ -203,23 +214,23 @@ export default function EmployeeChatPage() {
   // FETCH MESSAGES FOR SELECTED EMPLOYEE
   // ============================================
   useEffect(() => {
-    if (!selectedEmployee?.id) {
+    if (!selectedEmployeeId) {
       setMessages([]);
       return;
     }
 
-    console.log('🔍 Setting up messages for employee:', selectedEmployee.id);
+    console.log('🔍 Setting up messages for employee:', selectedEmployeeId);
 
     // Messages sent by this employee
     const employeeMessagesQuery = query(
       collection(db, 'employeeMessages'),
-      where('senderId', '==', selectedEmployee.id)
+      where('senderId', '==', selectedEmployeeId)
     );
 
     // Replies from admin to this employee
     const adminRepliesQuery = query(
       collection(db, 'employeeReplies'),
-      where('recipientId', '==', selectedEmployee.id)
+      where('recipientId', '==', selectedEmployeeId)
     );
 
     const unsubscribeEmployeeMessages = onSnapshot(employeeMessagesQuery, (snapshot) => {
@@ -262,20 +273,15 @@ export default function EmployeeChatPage() {
       unsubscribeEmployeeMessages();
       unsubscribeAdminReplies();
     };
-  }, [selectedEmployee?.id]);
+  }, [selectedEmployeeId]);
 
-  // ✅ Scroll to bottom on new messages - ONLY IF AT BOTTOM
+  // Scroll to bottom on new messages
   useEffect(() => {
     if (messagesScrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = messagesScrollRef.current;
-      const isAtBottom = scrollHeight - scrollTop <= clientHeight + 100;
-      
-      if (isAtBottom) {
-        messagesScrollRef.current.scrollTo({
-          top: scrollHeight,
-          behavior: 'smooth'
-        });
-      }
+      messagesScrollRef.current.scrollTo({
+        top: messagesScrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 
@@ -322,8 +328,13 @@ export default function EmployeeChatPage() {
 
   // Send message to admin
   const handleSendMessage = async () => {
-    if (!selectedEmployee?.id) {
-      alert('Employee profile not found');
+    if (!selectedEmployeeId) {
+      alert('Please select your employee profile first');
+      return;
+    }
+
+    if (!selectedEmployee) {
+      alert('Employee not found');
       return;
     }
 
@@ -348,7 +359,7 @@ export default function EmployeeChatPage() {
 
       const messageData: any = {
         content: messageContent,
-        senderId: selectedEmployee.id,
+        senderId: selectedEmployeeId,
         senderName: selectedEmployee.name,
         senderEmail: selectedEmployee.email,
         senderRole: 'employee',
@@ -399,15 +410,15 @@ export default function EmployeeChatPage() {
 
   // Delete for me
   const handleDeleteForMe = async (message: Message) => {
-    if (!selectedEmployee?.id) return;
+    if (!selectedEmployeeId) return;
     
     try {
       const messageRef = doc(db, message.collection, message.id);
       const deletedFor = message.deletedFor || [];
       
-      if (!deletedFor.includes(selectedEmployee.id)) {
+      if (!deletedFor.includes(selectedEmployeeId)) {
         await updateDoc(messageRef, { 
-          deletedFor: [...deletedFor, selectedEmployee.id] 
+          deletedFor: [...deletedFor, selectedEmployeeId] 
         });
       }
     } catch (error) {
@@ -473,10 +484,22 @@ export default function EmployeeChatPage() {
     }
   };
 
+  const formatChatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      if (isToday(date)) return format(date, 'hh:mm a');
+      if (isYesterday(date)) return 'Yesterday';
+      return format(date, 'dd/MM/yy');
+    } catch {
+      return '';
+    }
+  };
+
   // Filter out deleted messages
   const visibleMessages = messages.filter(msg => {
     const deletedFor = msg.deletedFor || [];
-    return !deletedFor.includes(selectedEmployee?.id) && !msg.deletedForEveryone;
+    return !deletedFor.includes(selectedEmployeeId) && !msg.deletedForEveryone;
   });
 
   // Group messages by date
@@ -506,6 +529,27 @@ export default function EmployeeChatPage() {
     }
   };
 
+  // Filter employees for dropdown
+  const filteredEmployees = employees.filter(emp => 
+    emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.department?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredChats = employees.filter(emp => 
+    emp.name?.toLowerCase().includes(chatSearchQuery.toLowerCase()) ||
+    emp.email?.toLowerCase().includes(chatSearchQuery.toLowerCase()) ||
+    emp.department?.toLowerCase().includes(chatSearchQuery.toLowerCase())
+  );
+
+  // Handle chat select
+  const handleChatSelect = (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+    if (window.innerWidth < 768) {
+      setChatsSidebarOpen(false);
+    }
+  };
+
   // Handle logout
   const handleLogout = async () => {
     await logout();
@@ -518,15 +562,24 @@ export default function EmployeeChatPage() {
     return session.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
+      </div>
+    );
+  }
+
   // Main Render
   return (
     <div className="min-h-screen bg-slate-900 flex">
-      {/* Employee Sidebar */}
+      {/* ✅ Employee Sidebar - Same as Salary Page */}
       <EmployeeSidebar session={session} open={sidebarOpen} onOpenChange={setSidebarOpen} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header with User Info - Sticky at top */}
+      <main className="flex-1 overflow-auto">
+        {/* Header with User Info - Same style as Salary Page */}
         <div className="sticky top-0 z-40 bg-slate-800/95 backdrop-blur border-b border-slate-700">
           <div className="flex items-center justify-between p-6 max-w-7xl mx-auto w-full">
             <div className="flex items-center gap-4">
@@ -539,14 +592,17 @@ export default function EmployeeChatPage() {
               <div>
                 <h1 className="text-2xl font-bold text-white">Employee Chat</h1>
                 <p className="text-sm text-slate-400">
-                  {selectedEmployee ? `Chatting as: ${selectedEmployee.name}` : 'Loading your profile...'}
+                  {selectedEmployee ? `Chatting as: ${selectedEmployee.name}` : 'Select your profile'}
                 </p>
               </div>
             </div>
             
             {/* User Info Dropdown */}
             <div className="relative">
-              <div className="flex items-center gap-3 p-2">
+              <button
+                onClick={() => {}}
+                className="flex items-center gap-3 p-2 hover:bg-slate-700 rounded-xl transition-colors"
+              >
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-violet-500/20">
                   {getUserInitials()}
                 </div>
@@ -554,61 +610,85 @@ export default function EmployeeChatPage() {
                   <p className="text-sm font-semibold text-white">{session?.user.name}</p>
                   <p className="text-xs text-slate-400">{session?.user.email}</p>
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* ✅ Main Chat Container - Fixed height with internal scroll */}
-        <div className="flex-1 p-6 max-w-7xl mx-auto w-full h-full">
-          <Card className="bg-slate-800 border-slate-700 shadow-xl h-full flex flex-col">
+        <div className="p-6 max-w-7xl mx-auto">
+          <Card className="bg-slate-800 border-slate-700 shadow-xl">
             <div className="flex-1 flex flex-col min-h-0">
               
-              {/* Profile Info - Fixed section */}
-              <div className="bg-slate-800/50 border-b border-slate-700 px-6 py-5 shrink-0">
+              {/* Select Profile Section - Salary Page Style */}
+              <div className="bg-slate-800/50 border-b border-slate-700 px-6 py-5">
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                   <div className="flex-1">
                     <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2 block">
-                      YOUR PROFILE
+                      SELECT YOUR PROFILE
                     </label>
-                    
-                    {selectedEmployee ? (
-                      <div className="flex items-center gap-4 p-4 bg-slate-900/50 rounded-xl border border-violet-500/30">
-                        <Avatar className="w-16 h-16 rounded-xl border-2 border-violet-500/30">
-                          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-2xl">
-                            {selectedEmployee.name?.charAt(0) || 'E'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h2 className="text-xl font-bold text-white">{selectedEmployee.name}</h2>
-                          <p className="text-sm text-slate-400 mt-1">{selectedEmployee.email}</p>
-                          <div className="flex items-center gap-3 mt-2">
-                            {selectedEmployee.department && (
-                              <Badge variant="outline" className="border-slate-600 text-slate-300">
-                                {selectedEmployee.department}
-                              </Badge>
-                            )}
-                            {selectedEmployee.position && (
-                              <Badge variant="outline" className="border-slate-600 text-slate-300">
-                                {selectedEmployee.position}
-                              </Badge>
-                            )}
+                    <Select 
+                      value={selectedEmployeeId} 
+                      onValueChange={setSelectedEmployeeId}
+                    >
+                      <SelectTrigger className="w-full md:w-[400px] h-14 bg-slate-900/50 border-slate-700 hover:border-violet-500/50 focus:ring-2 focus:ring-violet-500/30 rounded-2xl">
+                        <SelectValue placeholder={
+                          <div className="flex items-center gap-3 text-slate-400">
+                            <User className="w-5 h-5 text-violet-400" />
+                            <span>Choose your name to start</span>
+                          </div>
+                        } />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700">
+                        <div className="px-3 py-2 border-b border-slate-700">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Input
+                              placeholder="Search your name..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="pl-9 h-11 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                            />
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 bg-slate-900/50 rounded-xl">
-                        <p className="text-slate-400">No employee profile found for your account</p>
-                      </div>
-                    )}
+                        <ScrollArea className="h-[280px]">
+                          {filteredEmployees.length > 0 ? (
+                            filteredEmployees.map(emp => (
+                              <SelectItem 
+                                key={emp.id} 
+                                value={emp.id}
+                                className="cursor-pointer hover:bg-violet-500/10"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <Avatar className="w-8 h-8 mt-1">
+                                    <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-purple-600/20 text-violet-400">
+                                      {emp.name?.charAt(0) || 'E'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-white">{emp.name}</div>
+                                    <div className="text-xs text-slate-400">
+                                      {emp.department || emp.position || emp.email}
+                                    </div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="py-8 text-center text-slate-400">
+                              No employees found
+                            </div>
+                          )}
+                        </ScrollArea>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {selectedEmployee && (
-                    <div className="flex items-center gap-4 px-4 py-2 bg-violet-500/10 rounded-2xl border border-violet-500/20 shrink-0">
+                    <div className="flex items-center gap-4 px-4 py-2 bg-violet-500/10 rounded-2xl border border-violet-500/20">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                         <span className="text-xs font-medium text-slate-300">
-                          Active
+                          Chatting as: <span className="text-violet-400 font-semibold">{selectedEmployee.name}</span>
                         </span>
                       </div>
                     </div>
@@ -616,14 +696,33 @@ export default function EmployeeChatPage() {
                 </div>
               </div>
 
-              {selectedEmployee ? (
+              {selectedEmployeeId && selectedEmployee ? (
                 <div className="flex-1 flex flex-col min-h-0 bg-slate-900">
                   
-                  {/* ✅ Messages Area - Scrollable with internal scrollbar */}
-                  <div className="flex-1 bg-slate-900/50 min-h-0 overflow-hidden">
+                  {/* Employee Header */}
+                  <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-12 h-12 rounded-xl border-2 border-violet-500/30">
+                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white">
+                          {selectedEmployee.name?.charAt(0) || 'E'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">
+                          {selectedEmployee.name}
+                        </h2>
+                        <p className="text-sm text-slate-400">
+                          {selectedEmployee.department || selectedEmployee.position || selectedEmployee.email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Messages Area */}
+                  <div className="flex-1 bg-slate-900/50 relative min-h-0">
                     <ScrollArea 
                       ref={messagesScrollRef}
-                      className="h-full w-full"
+                      className="absolute inset-0 w-full h-full"
                     >
                       <div className="px-6 py-6">
                         {visibleMessages.length === 0 ? (
@@ -654,7 +753,7 @@ export default function EmployeeChatPage() {
                                       <div key={msg.id} className={cn("flex items-end gap-2", isMe ? "justify-end" : "justify-start")}>
                                         
                                         {!isMe && (
-                                          <Avatar className="w-8 h-8 ring-2 ring-slate-700 shrink-0">
+                                          <Avatar className="w-8 h-8 ring-2 ring-slate-700">
                                             <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs">
                                               A
                                             </AvatarFallback>
@@ -778,7 +877,7 @@ export default function EmployeeChatPage() {
                                         </div>
                                         
                                         {isMe && (
-                                          <Avatar className="w-8 h-8 ring-2 ring-slate-700 shrink-0">
+                                          <Avatar className="w-8 h-8 ring-2 ring-slate-700">
                                             <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs">
                                               {selectedEmployee.name?.charAt(0) || 'E'}
                                             </AvatarFallback>
@@ -796,8 +895,8 @@ export default function EmployeeChatPage() {
                     </ScrollArea>
                   </div>
 
-                  {/* ✅ Message Input - Fixed at bottom */}
-                  <div className="bg-slate-800/80 backdrop-blur-xl border-t border-slate-700 px-6 py-1 shrink-0">
+                  {/* Message Input */}
+                  <div className="bg-slate-800/80 backdrop-blur-xl border-t border-slate-700 px-6 py-1">
                     
                     {replyingTo && (
                       <div className="mb-3 p-3 bg-slate-700 rounded-lg flex items-center gap-3 border-l-4 border-violet-500">
@@ -810,7 +909,7 @@ export default function EmployeeChatPage() {
                             {replyingTo.content || '📷 Image'}
                           </p>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={clearReply} className="text-slate-400 hover:text-white shrink-0">
+                        <Button variant="ghost" size="icon" onClick={clearReply} className="text-slate-400 hover:text-white">
                           <X className="w-3 h-3" />
                         </Button>
                       </div>
@@ -818,13 +917,13 @@ export default function EmployeeChatPage() {
                     
                     {imagePreview && (
                       <div className="mb-3 p-2 bg-slate-700 rounded-lg flex items-center gap-3">
-                        <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-600 shrink-0">
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-600">
                           <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 text-sm text-slate-300 truncate">
                           {selectedImage?.name}
                         </div>
-                        <Button variant="ghost" size="icon" onClick={clearSelectedImage} className="text-slate-400 hover:text-white shrink-0">
+                        <Button variant="ghost" size="icon" onClick={clearSelectedImage} className="text-slate-400 hover:text-white">
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -839,8 +938,8 @@ export default function EmployeeChatPage() {
                       
                       <div className="flex-1 bg-slate-900/80 rounded-2xl border border-slate-700 hover:border-violet-500/30 focus-within:border-violet-500/50 focus-within:ring-2 focus-within:ring-violet-500/20">
                         <div className="flex items-center px-4">
-                          {replyingTo && <ReplyAll className="w-4 h-4 text-violet-400 mr-2 shrink-0" />}
-                          <MessageCircle className="w-5 h-5 text-slate-500 shrink-0" />
+                          {replyingTo && <ReplyAll className="w-4 h-4 text-violet-400 mr-2" />}
+                          <MessageCircle className="w-5 h-5 text-slate-500" />
                           <Input
                             ref={replyInputRef}
                             value={newMessage}
@@ -855,7 +954,7 @@ export default function EmployeeChatPage() {
                       <Button 
                         onClick={handleSendMessage} 
                         disabled={!newMessage.trim() && !selectedImage || isSending}
-                        className="h-12 px-6 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-2xl shadow-lg shadow-violet-600/20 shrink-0"
+                        className="h-12 px-6 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-2xl shadow-lg shadow-violet-600/20"
                       >
                         <Send className="w-4 h-4 mr-2" />
                         {isSending ? 'Sending...' : 'Send'}
@@ -870,14 +969,14 @@ export default function EmployeeChatPage() {
                       <Briefcase className="w-14 h-14 text-violet-400" />
                     </div>
                     <h3 className="text-2xl font-bold text-white mb-3">
-                      No Employee Profile Found
+                      Employee Chat
                     </h3>
                     <p className="text-slate-400 mb-8">
-                      We couldn't find an employee profile linked to your account. Please contact HR.
+                      Select your name from the dropdown above to view your messages and chat with admin.
                     </p>
                     <div className="flex items-center justify-center gap-2 text-sm text-violet-400 bg-violet-500/10 px-6 py-3 rounded-2xl">
-                      <Mail className="w-4 h-4" />
-                      <span>Session Email: {session?.user.email}</span>
+                      <Users className="w-4 h-4" />
+                      <span>{employees.length} employees registered</span>
                     </div>
                   </div>
                 </div>

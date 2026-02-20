@@ -147,7 +147,7 @@ const ALL_PAGES_CONFIG = {
   'Job Profitability': { icon: TrendingUp, href: '/admin/job-profitability' },
   'Bookings': { icon: Calendar, href: '/admin/bookings' },
   'Process Inquiry': { icon: Inbox, href: '/admin/process-inquiry' },
-  'Chat Bot': { icon: Inbox, href: '/admin/employee-chat' },
+  'chat bot': { icon: Inbox, href: '/admin/employee-chat' },
   'HR Management': { icon: UserCircle, href: '/admin/hr' },
   'Employee Directory': { icon: Users, href: '/admin/hr/employee-directory' },
   'Attendance': { icon: Clock, href: '/admin/hr/attendance' },
@@ -260,8 +260,8 @@ const MENU_STRUCTURE = [
   },
   { 
     type: 'single',
-    label: 'chat Bot',
-    key: 'chat Bot'
+    label: 'chat bot',
+    key: 'chat bot'
   },
   { 
     type: 'single',

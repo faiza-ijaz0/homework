@@ -99,8 +99,7 @@ export default function Meetings() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
-      <ManagerSidebar session={session} open={sidebarOpen} onOpenChange={setSidebarOpen} />
-
+     
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-slate-800/50 backdrop-blur border-b border-slate-700 px-6 py-4 flex items-center justify-between">

@@ -5,7 +5,7 @@ export async function testCredentials() {
   console.log('=== DEMO CREDENTIALS TEST ===');
   console.log('Available credentials:', Object.keys(DEMO_CREDENTIALS));
   
-  const portals = ['admin', 'manager', 'supervisor', 'employee', 'client', 'guest'] as const;
+  const portals = ['admin', 'employee'] as const;
   
   for (const portal of portals) {
     const creds = DEMO_CREDENTIALS[portal];
