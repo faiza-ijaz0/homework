@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ReactNode, useState, useEffect } from 'react'
@@ -53,7 +54,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-white text-slate-900 transition-colors duration-300">
       {/* Top Bar - Enhanced */}
-      <div className="bg-gradient-to-r from-primary via-primary to-pink-700 text-white py-3 hidden md:block border-b border-white/10">
+      <div className="bg-[#039ED9] text-white py-3 hidden md:block border-b border-white/10">
         <div className="container mx-auto px-4 flex justify-between items-center text-xs font-bold">
           <div className="flex items-center gap-8">
             <a 
@@ -262,7 +263,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             
             <a 
               href="/book-service" 
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-primary to-pink-700 px-8 text-sm font-black text-white shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 active:scale-95 tracking-wider border-2 border-white/20"
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-pink-600 px-8 text-sm font-black text-white shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 active:scale-95 tracking-wider border-2 border-white/20"
             >
               BOOK NOW
             </a>

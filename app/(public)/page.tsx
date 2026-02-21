@@ -15,7 +15,7 @@ import { INITIAL_TESTIMONIALS } from '@/lib/testimonials-data'
 interface CTAButtonProps {
   text: string
   href: string
-  variant?: "primary" | "secondary" | "dark"
+  variant?: "primary" | "secondary" | "dark" 
   icon?: React.ComponentType<{ className?: string }> | null
   className?: string
 }
@@ -329,10 +329,10 @@ export default function HomePage() {
                     initial={{ opacity: 0, y: 40, skewY: 5 }}
                     animate={{ opacity: 1, y: 0, skewY: 0 }}
                     exit={{ opacity: 0, y: -40, skewY: -5 }}
-                    className="text-6xl md:text-8xl font-black text-slate-950 leading-[0.9] tracking-tighter"
+                    className="text-6xl md:text-8xl font-black text-[#039ED9] leading-[0.9] tracking-tighter"
                   >
                     {heroTexts[textIndex].split('\n')[0]} <br />
-                    <span className="text-transparent bg-clip-text bg-linear-to-r from-primary via-pink-500 to-rose-500">
+                    <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-400 via-pink-500 to-rose-500">
                       {heroTexts[textIndex].split('\n')[1]}
                     </span>
                   </motion.h1>
@@ -371,33 +371,44 @@ export default function HomePage() {
             <div className="w-full lg:w-2/5 relative">
               <div className="relative aspect-square max-w-125 mx-auto">
                 
-                {/* Main Floating Card */}
-                <motion.div 
-                  className="absolute inset-0 bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl z-20 group"
-                  style={{ x: heroParallaxX, y: heroParallaxY }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  {/* Hero Image with Animated Overlay */}
-                  <img 
-                    src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800" 
-                    className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-1000"
-                    alt="Professional Cleaning Service"
-                  />
-                  <motion.div 
-                    className="absolute inset-0 bg-linear-to-t from-slate-950 via-transparent to-transparent"
-                    animate={{ opacity: [0.4, 0.6, 0.4] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  
-                  <div className="absolute bottom-8 left-8 right-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="h-3 w-3 fill-primary text-primary" />)}
-                      </div>
-                      <span className="text-[10px] font-black text-white uppercase tracking-widest">Premium Rated Agency</span>
-                    </div>
-                  </div>
-                </motion.div>
+               {/* Main Floating Card */}
+<motion.div 
+  className="absolute inset-0 bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl z-20 group"
+  style={{ x: heroParallaxX, y: heroParallaxY }}
+  whileHover={{ scale: 1.02 }}
+>
+  {/* ✅ FIXED: Correct path - /videos/video.mp4 */}
+  <video 
+    className="w-full h-full object-cover opacity-60"
+    autoPlay
+    loop
+    muted
+    playsInline
+  >
+    <source src="/videos/video.mp4" type="video/mp4" />
+    {/* Fallback agar video na chale */}
+    <img 
+      src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800" 
+      className="w-full h-full object-cover opacity-60"
+      alt="Professional Cleaning Service"
+    />
+  </video>
+  
+  <motion.div 
+    className="absolute inset-0 bg-linear-to-t from-slate-950 via-transparent to-transparent"
+    animate={{ opacity: [0.4, 0.6, 0.4] }}
+    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+  />
+  
+  <div className="absolute bottom-8 left-8 right-8">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="h-3 w-3 fill-primary text-primary" />)}
+      </div>
+      <span className="text-[10px] font-black text-white uppercase tracking-widest">Premium Rated Agency</span>
+    </div>
+  </div>
+</motion.div>
 
                 {/* Floating Widget: Air Quality */}
                 <motion.div 
